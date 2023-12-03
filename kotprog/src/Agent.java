@@ -7,84 +7,141 @@ import game.racetrack.utils.Coin;
 import game.racetrack.utils.PathCell;
 import game.racetrack.utils.PlayerState;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static game.racetrack.RaceTrackGame.BFS;
+import static game.racetrack.RaceTrackGame.direction;
+
 public class Agent extends RaceTrackPlayer {
-    private int collected = 0;
     private List<PathCell> route;
     private int stepCounter = 0;
     private int lineItemCounter = 0;
     private int lineItemLength = 0;
     private List<List<PathCell>> lines;
+    private boolean ujLepes = false;
 
     public Agent(PlayerState state, Random random, int[][] track, Coin[] coins, int color) {
         super(state, random, track, coins, color);
-        this.route = this.coinBFS(state.i, state.j, track, 1);
+        this.route = BFS(state.i, state.j, track);
         this.lines = this.breakToLines(this.route);
+        System.out.println(lines);
     }
 
     public Direction getDirection(long remainingTime) {
         Cell currentCell = new Cell(this.state.i, this.state.j);
-        this.lineItemLength = ((List)this.lines.get(this.lineItemCounter)).size();
+        this.lineItemLength = this.lines.get(this.lineItemCounter).size();
+        System.out.println("line lenght"+lineItemLength);
         Direction direction;
-        if (this.stepCounter == 0) {
-            Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
-            direction = RaceTrackGame.direction(currentCell, nextCell);
-            ++this.stepCounter;
-        } else if (this.stepCounter == this.lineItemLength) {
-            direction = new Direction(this.state.vi * -1, this.state.vj * -1);
-            ++this.lineItemCounter;
-            this.stepCounter = 0;
-        } else {
-            direction = new Direction(0, 0);
-            ++this.stepCounter;
-        }
 
+        //Cell nextCell = new Cell(this.lines.get(this.lineItemCounter).get(lineItemLength-1).i, this.lines.get(this.lineItemCounter).get(lineItemLength-1).j);
+    if(lineItemLength%2==0){
+        if(lineItemLength==2){
+            if(stepCounter==0){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                ++this.stepCounter;
+            }else if(stepCounter==lineItemLength-1 && stepCounter < lineItemLength){
+                direction = new Direction(0, 0);
+                stepCounter++;
+            }else{
+                direction = new Direction(this.state.vi *-1,this.state.vj *-1 );
+                this.stepCounter=0;
+                lineItemCounter++;
+            }
+        }else{
+            if(stepCounter==0){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                ++this.stepCounter;
+            }
+            else if(stepCounter==1){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                ++stepCounter;
+            }else if(stepCounter>1 && stepCounter<lineItemLength-2){
+                direction = new Direction(0, 0);
+                stepCounter+=2;
+            }else if(stepCounter==lineItemLength-2 && stepCounter < lineItemLength){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter+1)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter+1)).j);
+                int newI=direction(currentCell, nextCell).i;
+                int newJ=direction(currentCell, nextCell).j;
+                direction=new Direction(newI * -1, newJ * -1);
+                ++this.stepCounter;
+            }else if(stepCounter==lineItemLength-1 && stepCounter < lineItemLength){
+                direction = new Direction(this.state.vi *-1,this.state.vj *-1 );
+                stepCounter++;
+            }else{
+                direction = new Direction(0, 0);
+                this.stepCounter=0;
+                lineItemCounter++;
+            }
+        }
+    }else{
+        if(lineItemLength==1){
+            if(stepCounter==0){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                ++this.stepCounter;
+            }else{
+                direction = new Direction(this.state.vi *-1,this.state.vj *-1 );
+                this.stepCounter=0;
+                lineItemCounter++;
+            }
+        }else if(lineItemLength==3){
+            if(stepCounter==0){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                ++this.stepCounter;
+            }else if(stepCounter==1 && stepCounter < lineItemLength){
+                direction = new Direction(0, 0);
+                stepCounter++;
+            }else if(stepCounter==2 && stepCounter < lineItemLength){
+                direction = new Direction(this.state.vi *-1,this.state.vj *-1 );
+                stepCounter++;
+            }else{
+                direction = new Direction(0, 0);
+                this.stepCounter=0;
+                lineItemCounter++;
+            }
+        }
+        else{
+            if(stepCounter==0){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                System.out.println("gyorsít");
+                ++this.stepCounter;
+            }
+            else if(stepCounter==1){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter)).j);
+                direction = direction(currentCell, nextCell);
+                System.out.println("megint");
+                ++stepCounter;
+            }else if(stepCounter>1 && stepCounter<lineItemLength-3){
+                direction = new Direction(0, 0);
+                stepCounter+=2;
+            }else if(stepCounter==lineItemLength-3 && stepCounter < lineItemLength){
+                Cell nextCell = new Cell(((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter+1)).i, ((PathCell)((List)this.lines.get(this.lineItemCounter)).get(this.stepCounter+1)).j);
+                int newI=direction(currentCell, nextCell).i;
+                int newJ=direction(currentCell, nextCell).j;
+                direction=new Direction(newI * -1, newJ * -1);
+                ++this.stepCounter;
+            }else if(stepCounter==lineItemLength-2 && stepCounter < lineItemLength){
+                direction = new Direction(0, 0);
+                stepCounter++;
+            }else if(stepCounter==lineItemLength-1 && stepCounter < lineItemLength){
+                direction = new Direction(this.state.vi *-1,this.state.vj *-1 );
+                stepCounter++;
+            }else{
+                direction = new Direction(0, 0);
+                this.stepCounter=0;
+                lineItemCounter++;
+            }
+        }
+    }
         return direction;
     }
 
-    public List<PathCell> coinBFS(int i, int j, int[][] track, int deepness) {
-        LinkedList<PathCell> path = new LinkedList();
-        LinkedList<PathCell> open = new LinkedList();
-        LinkedList<PathCell> close = new LinkedList();
-        PathCell current = new PathCell(i, j, (PathCell)null);
-        open.add(current);
-
-        int idx;
-        while(!open.isEmpty()) {
-            current = (PathCell)open.pollFirst();
-            if (deepness > 0 && RaceTrackGame.mask(track[current.i][current.j], 16) || deepness == 0 && RaceTrackGame.mask(track[current.i][current.j], 4)) {
-                break;
-            }
-
-            close.add(current);
-
-            for(idx = 0; idx < RaceTrackGame.DIRECTIONS.length; ++idx) {
-                i = current.i + RaceTrackGame.DIRECTIONS[idx].i;
-                j = current.j + RaceTrackGame.DIRECTIONS[idx].j;
-                PathCell neighbor = new PathCell(i, j, current);
-                if (RaceTrackGame.isNotWall(i, j, track) && !close.contains(neighbor) && !open.contains(neighbor)) {
-                    open.add(neighbor);
-                }
-            }
-        }
-
-        while(current != null) {
-            path.addFirst(current);
-            current = current.parent;
-        }
-
-        if (deepness > 0) {
-            idx = ((PathCell)path.get(path.size() - 1)).i;
-            int newJ = ((PathCell)path.get(path.size() - 1)).j;
-            path.remove(path.size() - 1);
-            path.addAll(this.coinBFS(idx, newJ, track, deepness - 1));
-        }
-
-        return path;
-    }
 
     public List<List<PathCell>> breakToLines(List<PathCell> route) {
         List<List<PathCell>> lines = new ArrayList();
